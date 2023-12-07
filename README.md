@@ -17,6 +17,39 @@ curl http://0.0.0.0:8008/docs
 Try it with Titanic Disaster Dataset:
 ```
 wget https://raw.githubusercontent.com/amberkakkar01/Titanic-Survival-Prediction/master/test.csv -O ./data/titanic.csv
+```
+Add this prompt "titanic_answer' to the configuraiton file in config/prompts.ini:
+```
+titanic_answer:
+{
+  action: 'text-generation'
+  instruction: 'Given the following SQL table, your job is to write queries given a user’s request. CREATE TABLE {} ({}) \n'
+  template: 'Write a SQL query that returns - {}'
+  query: 'How many people survived from the second class?'
+  device_map: 'auto'
+}
+```
+Run this job to answer the question:
+```
+curl http://0.0.0.0:8008/tranformers?job=titanic_answer
+```
+Framework will generate SQL table to keep the structure of the dataset and give you back resulting SQL to query it:
+```
+<|system|>
+Given the following SQL table, your job is to write queries given a user’s request. CREATE TABLE df (PassengerId BIGINT, Pclass BIGINT, Name VARCHAR, Sex VARCHAR, Age DOUBLE, SibSp BIGINT, Parch BIGINT, Ticket VARCHAR, Fare DOUBLE, Cabin VARCHAR, Embarked VARCHAR)
 
-curl http://0.0.0.0:8008/tranformers?job=sql_generator&query=How+many+passengers+from+second+class+survived?
+<|user|>
+Write a SQL query that returns - How many people survived from the second class?
+<|assistant|>
+To answer this question, we need to filter the data to only include passengers from the second class (Pclass = 2) and then count the number of passengers who survived (Survived = 1).
+
+Here's the SQL query:
+
+SELECT COUNT(*)
+
+FROM df
+
+WHERE Pclass = 2 AND Survived = 1;
+
+This query will return the total number of passengers who survived from the second class.
 ```
