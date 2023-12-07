@@ -7,3 +7,10 @@ This demonstrator works for various use cases:
 - create SQL table out of tabular datasets and fill with data points in the appropriate format
 - link variables to Semantic Web concepts such as Wikidata or Skosmos hosted
 - ask your data with natural language about anything, get back answers with explanation or SQL queries to do verification of results.
+
+Usage:
+```
+cp env.sample .env
+docker-compose up -d
+curl http://0.0.0.0:8008/docs
+```
