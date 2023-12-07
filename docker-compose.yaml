@@ -1,0 +1,31 @@
+version: '3.7'
+# Settings and configurations that are common for all containers
+
+services:
+    everythingdata:
+      container_name: everythingdata
+      build: .
+      user: root
+      build: .
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: 1
+                capabilities: [gpu]
+      environment:
+       - "TOKEN"
+       - "DATAPATH"
+       - "CONFIG"
+       - "MODEL"
+       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+      ports:
+        - "8008:8000"
+      command: uvicorn main:app --host 0.0.0.0 --port 8000
+      volumes:
+        - ${DATADIR}:/data
+        - ${CONFIG}:/app/config/prompts.ini
+        - ${MODELS}:/root/.cache/huggingface
+        - ./app/app.py:/app/main.py
+        - ./app/llmframe.py:/app/llmframe.py
