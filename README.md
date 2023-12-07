@@ -15,7 +15,7 @@ docker-compose up -d
 curl http://0.0.0.0:8008/docs
 ```
 Try it with Titanic Disaster Dataset:
-``
+```
 wget https://raw.githubusercontent.com/amberkakkar01/Titanic-Survival-Prediction/master/test.csv -O ./data/titanic.csv
 curl http://0.0.0.0:8008/tranformers?job=sql_generator&query=How+many+passengers+from+second+class+survived?
 ```
