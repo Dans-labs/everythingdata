@@ -12,13 +12,10 @@ class LLMFrame():
     def __init__(self, config=False, job=False, debug=False):
         self.DEBUG = debug
         self.df = False
-        self.config = False
         if job:
             self.config = config
         
     def loader(self, path="../data"):
-        csvfiles =[]
-        xlsfiles = []
         csvfiles = [x for x in os.listdir(path = path) if ".csv" in x]
         xlsfiles = [x for x in os.listdir(path = path) if ".xls" in x]
         if csvfiles:
@@ -77,12 +74,14 @@ class LLMFrame():
         return
 
     def run_pipeline(self, messages):
+        #todo: migrate to using config
         pipe = pipeline("text-generation",
                 model=os.environ['MODEL'],
                 torch_dtype=torch.bfloat16,
                 device_map="auto")
 
         prompt = pipe.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        #todo: migrate model parameters to config
         outputs = pipe(prompt,
                max_new_tokens=256,
                do_sample=True,
