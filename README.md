@@ -20,7 +20,7 @@ Try it with Titanic Disaster Dataset:
 wget https://raw.githubusercontent.com/amberkakkar01/Titanic-Survival-Prediction/master/test.csv -O ./data/titanic.csv
 ```
 
-## Example 1: Survived from the second class
+## Example 1: Survived passengers of the Titanic from the second class
 
 Task 1. You are interested in how many Titanic passangers survived from the second class, just add this prompt "titanic_answer' to the configuration file in config/prompts.ini:
 
