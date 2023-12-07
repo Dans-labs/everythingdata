@@ -27,8 +27,7 @@ def transformers(job='sql_generator', format: Optional[str] = None):
     llm = LLMFrame(config=cfg[job], job=job)
     df = llm.loader()
     query = cfg[job]['query']
-    msg = llm.create_message(table_name = "df", query = query)
-
+    
     m = llm.create_message(table_name = "df", query = query)
     llm.debug_messages(m)
     messages = llm.prepare_message(m)
