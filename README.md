@@ -103,3 +103,25 @@ AND SUBSTRING(Name, CHARINDEX(' ', Name) + 1) = 'Johnson';
 -- We then use the CHARINDEX function again to find the index of the second space character in the Name column, starting from the first space character.
 -- We subtract the starting
 ```
+
+## Example 3. Getting the list of questions your data can answer
+
+Now we want AI to analyze dataset and give us the list of possible questions related to the data:
+```
+<|system|>
+Given the following SQL table, your job is to write queries given a user’s request. CREATE TABLE df (PassengerId BIGINT, Pclass BIGINT, Name VARCHAR, Sex VARCHAR, Age DOUBLE, SibSp BIGINT, Parch BIGINT, Ticket VARCHAR, Fare DOUBLE, Cabin VARCHAR, Embarked VARCHAR)
+
+<|user|>
+Write a SQL query that returns - Give me back possible questions to be answered with table df
+<|assistant|>
+I do not have the context of your specific use case or requirements. however, based on the given table, here are some possible questions that can be answered using sql queries:
+
+1. what is the average fare for passengers in the first class (pclass = 1)?
+2. how many female passengers (sex = 'female') were traveling with at least one sibling (sibsp > 0)?
+3. what is the most common embarkation port for passengers in the third class (pclass = 3)?
+4. how many passengers embarked from southampton (embarked ='s') and what is the average fare for them?
+5. what is the highest fare paid by a passenger in the second class (pclass = 2)?
+6. how many passengers were traveling alone (sibsp = parch = 0)?
+7. what is the total number of passengers who embarked from quebec (embarked = 'q')?
+8. what is the average age for passengers in the second class (pclass = 2) who embarked from southampton (embarked ='s')?
+```
