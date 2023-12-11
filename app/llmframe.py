@@ -27,8 +27,8 @@ class LLMFrame():
             self.df = pd.concat((pd.read_excel(path +"/" + f) for f in xlsfiles), ignore_index=False)
         return self.df
         
-    def create_message(self, table_name, query):
-        class message:
+    def create_message(self, table_name = None, query = None, customquery = None):
+        class table_message:
             def __init__(message, system, user, column_names, column_attr):
                 message.system = system
                 message.user = user
@@ -37,18 +37,34 @@ class LLMFrame():
 
    
         system_template = self.config['instruction']
+        if customquery:
+            system_template = customquery
         user_template = self.config['template']
 
-        tbl_describe = duckdb.sql("DESCRIBE SELECT * FROM " + table_name +  ";")
-        col_attr = tbl_describe.df()[["column_name", "column_type"]]
-        col_attr["column_joint"] = col_attr["column_name"] + " " +  col_attr["column_type"]
-        col_names = str(list(col_attr["column_joint"].values)).replace('[', '').replace(']', '').replace('\'', '')
+        if table_name:
+            tbl_describe = duckdb.sql("DESCRIBE SELECT * FROM " + table_name +  ";")
+            col_attr = tbl_describe.df()[["column_name", "column_type"]]
+            col_attr["column_joint"] = col_attr["column_name"] + " " +  col_attr["column_type"]
+            col_names = str(list(col_attr["column_joint"].values)).replace('[', '').replace(']', '').replace('\'', '')
 
-        system = system_template.format(table_name, col_names)
-        user = user_template.format(query)
+            system = system_template.format(table_name, col_names)
+            user = user_template.format(query)
+            print("SYSTEM")
+            print(system)
+            print(user)
 
-        m = message(system = system, user = user, column_names = col_attr["column_name"], column_attr = col_attr["column_type"])
-        return m
+            m = table_message(system = system, user = user, column_names = col_attr["column_name"], column_attr = col_attr["column_type"])
+            return m
+        else:
+#  instruction: 'Given the following text, your job is to link user's request to the same context: {}.\n'
+#  template: 'then translate user's query in {}'
+# English, French and Spanish'
+
+            system = system_template.format(customquery)
+            user = user_template.format(query)
+            m = table_message(system = system, user = user, column_names = None, column_attr = None)
+            return m
+        return 
     
     def add_quotes(self, query, col_names):
         for i in col_names:

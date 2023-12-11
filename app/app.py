@@ -20,16 +20,45 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World"}
 
+@app.get("/translate")
+def translate(job='translate', customquery: Optional[str] = None, language: Optional[str] = None, format: Optional[str] = None):
+    query = None
+    if not format:
+        format = 'html'
+    if not language:
+        language = 'English'
+    llm = LLMFrame(config=cfg[job], job=job)
+    msg = llm.create_message(table_name = None, query = query, customquery=customquery)
+    m = llm.create_message(table_name = None, query = query, customquery=customquery)
+    llm.debug_messages(m)
+    messages = llm.prepare_message(m)
+    o = llm.run_pipeline(messages)
+    if format == 'html':
+        return HTMLResponse(content=str(o[0]['generated_text']).replace('\n', '<br>'), status_code=200)
+    else:
+        return json.dumps(o)
+
+@app.get("/summarize")
+def summarize(job='translate', customquery: Optional[str] = None, language: Optional[str] = None, format: Optional[str] = None):
+    query = None
+    if not language:
+        language = 'English'
+    return "Summarize %s" % customquery
+
 @app.get("/tranformers")
-def transformers(job='sql_generator', format: Optional[str] = None):
+def transformers(job='sql_generator', customquery: Optional[str] = None, format: Optional[str] = None):
+    query = None
     if not format:
         format = 'html'
     llm = LLMFrame(config=cfg[job], job=job)
     df = llm.loader()
-    query = cfg[job]['query']
-    msg = llm.create_message(table_name = "df", query = query)
+    print(query)
+    if not customquery:
+        query = cfg[job]['query']
+    print("Q2: %s" % query)
+    msg = llm.create_message(table_name = "df", query = query, customquery=customquery)
 
-    m = llm.create_message(table_name = "df", query = query)
+    m = llm.create_message(table_name = "df", query = query, customquery=customquery)
     llm.debug_messages(m)
     messages = llm.prepare_message(m)
     o = llm.run_pipeline(messages)
