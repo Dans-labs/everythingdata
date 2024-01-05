@@ -1,6 +1,6 @@
 # Everything Data
 
-Everything Data is FastAPI implementation for transformers, State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX. 
+Everything Data is a FastAPI implementation for transformers, State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX. 
 Created by Slava Tykhonov, DANS-KNAW R&D.
 
 This demonstrator will be working for various use cases:
