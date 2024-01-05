@@ -1,9 +1,9 @@
 # Everything Data use cases
 
-Everything Data is FastAPI implementation for transformers, State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX.
+Everything Data is a FastAPI implementation for transformers, State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX.
 Created by Slava Tykhonov, DANS-KNAW R&D.
 
-## Use Case #1: Translations in various languages for SKOS concept
+## Use Case #1 - Translator: Translations in various languages for SKOS concept
 ```
 curl "http://10.147.18.193:8008/translate?job=translate&customquery=Aanbod%20vaste%20uren%20werken?"
 ```
@@ -47,7 +47,7 @@ Danish: Fast arbejds timer?
 Description: This phrase is commonly used to inquire about the set or fixed hours of operation for a business or organization. It is often used in job interviews or when discussing work sched
 ```
 
-## Use case #2: Filter out related concepts and create SKOS hierarchy for the list of keywords:
+## Use case #2 - SKOS ontology creator: Filter out related concepts and create SKOS hierarchy for the list of keywords:
 ```
 curl http://10.147.18.193:8008/tranformers?job=declassification2
 ```
@@ -70,7 +70,7 @@ skos:narrower "Tech Startup Founders" ;
 skos:relatedMatch "Startup Ecosystem", "Venture"
 ```
 
-## Use case #3: Get triples with SKOS relationships for the specified text:
+## Use case #3 - Facts extraction: Get triples with SKOS relationships for the specified text, and export to JSON:
 ```
 curl -X 'GET' \
   'http://10.147.18.193:8008/graph?prompt=graph.prompt&inputtext=Albert%20Einstein%20%28Ulm%2C%2014%20maart%201879%20%E2%80%93%20Princeton%20%28New%20Jersey%29%2C%2018%20april%201955%29%20was%20een%20Duits-Zwitsers-Amerikaanse%20theoretisch%20natuurkundige%20van%20Joodse%20afkomst.%20Hij%20wordt%20algemeen%20gezien%20als%20een%20van%20de%20belangrijkste%20natuurkundigen%20uit%20de%20geschiedenis%2C%20naast%20Isaac%20Newton%20en%20James%20Clerk%20Maxwell.%20Zelf%20noemde%20hij%20altijd%20Newton%20als%20een%20veel%20belangrijker%20natuurkundige%20dan%20zichzelf%20omdat%20Newton%2C%20anders%20dan%20Einstein%2C%20behalve%20theoretische%20ook%20grote%20experimentele%20ontdekkingen%20deed.%20In%20het%20dagelijks%20leven%20is%20de%20naam%20Einstein%20synoniem%20geworden%20met%20grote%20intelligentie.%5B1%5D' \
