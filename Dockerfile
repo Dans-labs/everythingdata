@@ -8,7 +8,7 @@ RUN apt-get update && apt-get upgrade -y \
     && apt-get install -y git build-essential \
     python3 python3-pip gcc wget \
     ocl-icd-opencl-dev opencl-headers clinfo \
-    libclblast-dev libopenblas-dev \
+    libclblast-dev libopenblas-dev vim \
     && mkdir -p /etc/OpenCL/vendors && echo "libnvidia-opencl.so.1" > /etc/OpenCL/vendors/nvidia.icd
 
 COPY app /app
@@ -20,6 +20,7 @@ ENV LLAMA_CUBLAS=1
 # Install depencencies
 RUN python3 -m pip install --upgrade pip pytest cmake scikit-build setuptools fastapi uvicorn sse-starlette pydantic-settings flask requests starlette-context
 RUN pip3 install -r /app/requirements.txt
+RUN python3 -c "import nltk; nltk.download('punkt')"
 
 # Install llama-cpp-python (build with cuda)
 RUN CMAKE_ARGS="-DLLAMA_CUBLAS=on" pip install llama-cpp-python
