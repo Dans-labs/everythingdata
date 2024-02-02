@@ -1,4 +1,8 @@
 git+https://github.com/AUSSDA/pyDataverse.git@develop
+langcodes
+langdetect
+wikipedia-api
+nltk
 config
 xlrd
 duckdb
@@ -9,6 +13,7 @@ scipy
 pdfkit
 xlsxwriter
 #pydataverse
+pydantic
 python-Levenshtein
 arrow
 rdflib
@@ -29,3 +34,7 @@ doccano-client
 #psycopg2
 redis
 pandas
+yachalk
+langchain
+GPT4All 
+chromadb
