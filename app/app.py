@@ -103,6 +103,11 @@ async def translate_item(info: Request, job='translate'):
 
 @app.get("/translate")
 def translate(job='translate', customquery: Optional[str] = None, language: Optional[str] = None, format: Optional[str] = None, context: Optional[str] = None):
+    transferdata = { 'concept': customquery }
+    if format:
+        transferdata['format'] = format
+    else:
+        format = 'json'
     query = None
     if not format:
         format = 'html'
@@ -110,6 +115,8 @@ def translate(job='translate', customquery: Optional[str] = None, language: Opti
         language = 'English'
     if not context:
         context = 'nocontext'
+    transferdata['context'] = context
+    
     llm = LLMFrame(config=cfg[job], job=job)
     msg = llm.create_message(table_name = None, query = query, customquery=customquery)
     m = llm.create_message(table_name = None, query = query, customquery=customquery, context=context)
@@ -119,7 +126,14 @@ def translate(job='translate', customquery: Optional[str] = None, language: Opti
     if format == 'html':
         return HTMLResponse(content=str(o[0]['generated_text']).replace('\n', '<br>'), status_code=200)
     else:
-        return json.dumps(o)
+        #return json.dumps(o)
+        if o:
+            dataresponse = infocleaner(str(o[0]['generated_text']))
+            dataresponse['concept'] = transferdata['concept']
+            dataresponse['md5'] = generate_md5(dataresponse['concept'])
+            dataresponse['md5context'] = generate_md5("%s %s" % (dataresponse['concept'], transferdata['context']))
+            dataresponse['lang'] = getlanguage(transferdata['context'])
+            return dataresponse
 
 @app.get("/summarize")
 def summarize(job='translate', customquery: Optional[str] = None, language: Optional[str] = None, format: Optional[str] = None):
