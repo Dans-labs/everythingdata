@@ -1,14 +1,21 @@
 import requests
 import json
-#!pip install rdflib
-#!pip install langcodes
-#!pip install language_data
+from datetime import datetime
 from rdflib.namespace import OWL, RDF, RDFS, SKOS
 from rdflib import Graph, Literal, Namespace, URIRef
 from interfaces import InterfaceAI
 from langcodes import *
+from WikiPandas import WikiPandas
+import jwt
 import hashlib
 import os
+import pytz
+
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
 
 class GraphAI():
     def __init__(self, llmapi=None, llmramapi=None, url=None, q=None, rootgraph=None, debug=False):
@@ -17,6 +24,8 @@ class GraphAI():
         #self.LMRAM = "http://192.168.1.113:8010"
         self.graph = None
         self.data = None
+        self.dates = {} 
+        self.wikipediapage = None
         if 'LLMAPI' in os.environ:
             self.llmapi = os.environ['LLMAPI']
         if 'LLMRAMAPI' in os.environ:
@@ -26,11 +35,62 @@ class GraphAI():
         if llmramapi:
             self.llmramapi = llmramapi
         self.interface = InterfaceAI(self.llmapi, self.llmramapi)
+        self.valuestats = {}
 
         if rootgraph:
             self.graph = rootgraph.graph
         else:
             self.graph = Graph()
+
+    def check_values(self, obj, SEPARATOR='_', FORBIDDEN='/'):
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                if isinstance(value, str):
+                    if value: #'value' in value:
+#                        print("\t %s" % value)
+                        if SEPARATOR in value:
+                            if not FORBIDDEN in value:
+                                if value in self.valuestats:
+                                    self.valuestats[value] = self.valuestats[value] + 1
+                                else:
+                                    self.valuestats[value] = 1
+                else:
+                    self.check_values(value)
+        elif isinstance(obj, list):
+            for item in obj:
+                self.check_values(item)
+        return self.valuestats
+
+    def current_date(self):
+        current_utc_datetime = datetime.utcnow()
+
+        # Specify the desired timezone (e.g., 'America/New_York')
+        desired_timezone = 'Europe/Amsterdam'
+
+        # Convert the UTC datetime to the desired timezone
+        self.dates['current_datetime_with_timezone'] = current_utc_datetime.replace(tzinfo=pytz.utc).astimezone(pytz.timezone(desired_timezone))
+        self.dates['formatted_date'] = self.dates['current_datetime_with_timezone'].strftime('%a, %d %b %Y %H:%M:%S %Z')
+        return datetime.now()
+
+    def make_cache(self, q, data, url=None, type='resource'):
+        API_ENDPOINT = "%s/llmcache/" % self.llmramapi
+        jsondata = json.loads(data)
+        postdata = {'data': jsondata }
+        postdata['type'] = type
+        md5 = str(self.generate_md5(q))
+        postdata['md5'] = md5
+        if url:
+            postdata['url'] = url
+        postdata['jwt'] = jwt.encode({q: type}, "secret", algorithm="HS256")
+        postdata['url'] = type
+        postdata['date'] = self.current_date()
+        postdata['wiki_identitifers'] = self.check_values(jsondata)
+        w = WikiPandas()
+        self.wikipedia_page = w.get_wikipedia_page(self.valuestats)
+        #print(postdata) 
+        #print(self.wikipedia_page)
+        r = requests.post(API_ENDPOINT, data = json.dumps(postdata, cls=DateTimeEncoder))
+        return r.text
 
     def ingest_document(self, url, q):
         if q:

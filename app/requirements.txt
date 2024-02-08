@@ -1,4 +1,6 @@
 git+https://github.com/AUSSDA/pyDataverse.git@develop
+mkwikidata
+jwt
 langcodes
 langdetect
 wikipedia-api
