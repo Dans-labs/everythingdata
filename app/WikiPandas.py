@@ -101,6 +101,34 @@ class WikiPandas():
             return df
         return
     
+    def viaf_to_wikidata(self, wdt="P214", viafID=None): 
+
+        query = """
+        PREFIX wikibase: <http://wikiba.se/ontology#>
+        PREFIX wd: <http://www.wikidata.org/entity/>
+        PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX viaf: <http://viaf.org/viaf/>
+
+       SELECT ?entity ?property ?propertyLabel ?value ?valueLabel
+        WHERE {
+          VALUES ?value { viaf:%s }.
+          ?entity wdtn:%s ?value.
+          ?entity ?property ?value.
+          SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+        }
+        ORDER BY ?entity ?propertyLabel
+        """ % (viafID, wdt)
+        print(query)
+        query_result = mkwikidata.run_query(query, params={ })
+        if self.format == 'json':
+            return query_result
+        if self.format == 'pandas':
+            langdata = self.add_lang(query_result["results"]["bindings"])
+            data = [{"property" : x["property"]["value"], "value" : str(x["value"]["value"]), "lang": str(x["value"]["xml:lang"])} for x in langdata]
+            df = pd.DataFrame(data).set_index("property")
+            return df
+
     def wikidata_persons(self, wdt="P214", personID="\"59269465\""):
         query = """
         PREFIX wikibase: <http://wikiba.se/ontology#>
