@@ -20,6 +20,8 @@ class DateTimeEncoder(json.JSONEncoder):
 class GraphAI():
     def __init__(self, llmapi=None, llmramapi=None, url=None, q=None, rootgraph=None, debug=False):
         self.known = {}
+        self.llmramapi = None
+        self.llmapi = None
         self.NS = "https://id.now.museum/"
         #self.LMRAM = "http://192.168.1.113:8010"
         self.graph = None
@@ -34,13 +36,17 @@ class GraphAI():
             self.llmapi = llmapi
         if llmramapi:
             self.llmramapi = llmramapi
-        self.interface = InterfaceAI(self.llmapi, self.llmramapi)
+        if self.llmramapi:
+            self.interface = InterfaceAI(self.llmapi, self.llmramapi)
         self.valuestats = {}
 
         if rootgraph:
             self.graph = rootgraph.graph
         else:
             self.graph = Graph()
+
+    def cleanstats(self):
+        self.valuestats = {}
 
     def check_values(self, obj, SEPARATOR='_', FORBIDDEN='/'):
         if isinstance(obj, dict):
@@ -72,7 +78,9 @@ class GraphAI():
         self.dates['formatted_date'] = self.dates['current_datetime_with_timezone'].strftime('%a, %d %b %Y %H:%M:%S %Z')
         return datetime.now()
 
-    def make_cache(self, q, data, url=None, type='resource'):
+    def make_cache(self, q, data, url=None, type=None):
+        if not type:
+            type = 'resource'
         API_ENDPOINT = "%s/llmcache/" % self.llmramapi
         jsondata = json.loads(data)
         postdata = {'data': jsondata }
@@ -82,13 +90,17 @@ class GraphAI():
         if url:
             postdata['url'] = url
         postdata['jwt'] = jwt.encode({q: type}, "secret", algorithm="HS256")
-        postdata['url'] = type
+        postdata['type'] = type
+        postdata['name'] = q
         postdata['date'] = self.current_date()
         postdata['wiki_identitifers'] = self.check_values(jsondata)
         w = WikiPandas()
         self.wikipedia_page = w.get_wikipedia_page(self.valuestats)
-        #print(postdata) 
-        #print(self.wikipedia_page)
+        print(postdata) 
+        print(self.wikipedia_page)
+        #if self.wikipedia_page:
+        #    postdata['url'] = self.wikipedia_page
+
         r = requests.post(API_ENDPOINT, data = json.dumps(postdata, cls=DateTimeEncoder))
         return r.text
 
@@ -275,3 +287,153 @@ class GraphAI():
                 #self.graph.add((concept1, rel["hasImportance"], importance))
             return graph       
         return graph
+
+    def getpairs(self, d, DEBUG=False):
+        resultpairs = []
+        known = {}
+        for idx in range(0, len(d)):
+            if DEBUG:
+                print(d[idx])
+            for intindex in range(0, len(d)):
+                pairs = {}
+                if not d[idx]==d[intindex]:
+                    if DEBUG:
+                        print("\t%s" % d[intindex])
+                    pairstring1 = "%s%s" % (d[idx], d[intindex])
+                    pairstring2 = "%s%s" % (d[intindex], d[idx])
+                    if not pairstring1 in known:
+                        if not pairstring2 in known:
+                            pairs[d[idx]] = d[intindex]
+                            known[pairstring1] = 1
+                            known[pairstring2] = 1
+                if pairs:
+                    resultpairs.append(pairs)
+        return resultpairs
+
+    def serialize_graph(self, results, outfile='/tmp/maincmme.json'):
+        if results:
+            columns = ["locResource", "property", "viafResource", "label", "topic"]
+            nodes = {}
+            links = {}
+            viaf = {}
+            points = []
+            topics = {}
+            LIMIT = 3000000
+            counter = 0
+            print(len(results))
+            for row in results:
+                #print(row)
+                if counter < LIMIT:
+                    counter = counter + 1
+                    datapoint = {}
+                    for ix in range(0,len(row)):
+                        if row[ix]:
+                            datapoint[columns[ix]] = str(row[ix])
+                    if 'locResource' in datapoint:
+                        datapoint['id'] = datapoint['locResource'].replace('http://id.loc.gov/authorities/names/no', '')
+                    if 'label' in datapoint:
+                        viaf[datapoint['viafResource']] = datapoint['label']
+                    if 'topic' in datapoint:
+                        topics[datapoint['locResource']] = datapoint['topic']
+                        if datapoint['topic'] in links:
+                            ids = links[datapoint['topic']]
+                            ids.append(datapoint['id'])
+                        else:
+                            ids = [datapoint['id']]
+                            links[datapoint['topic']] = ids
+                        #print(datapoint)
+                    points.append(datapoint)
+                #print(datapoint)
+                #print(f"Node: {row['node']}")
+            enrichedpoints = []
+            knownpoints = {}
+            for item in points:
+                print(item)
+                if 'viafResource' in item:
+                    #print(item['viafResource'])
+                    if item['viafResource'] in viaf:
+                        #print(viaf[item['viafResource']])
+                        item['description'] = viaf[item['viafResource']]
+                        item['user'] = viaf[item['viafResource']]
+                    if 'locResource' in item:
+                        #print(item['locResource'])
+                        if item['locResource'] in topics:
+                            item['topic'] = topics[item['locResource']]
+                            item['description'] = topics[item['locResource']]
+                #print("Enrichment %s" % item)
+
+                if 'description' in item:
+                    if 'id' in item:
+                        if not item['id'] in knownpoints:
+                            #if 'user' in item:
+                            if item:
+                                #del item['description']
+                                if 'topic' in item:
+                                    del item['topic']
+                                item['link'] = item['viafResource']
+                                del item['locResource']
+                                del item['property']
+                                del item['viafResource']
+                                enrichedpoints.append(item) 
+                                knownpoints[item['id']] = 1
+            data = {}
+            print(enrichedpoints)
+            data['nodes'] = enrichedpoints
+            #data['links'] = links
+            totallinks = []
+            for topic in links:
+                pairs = self.getpairs(links[topic])
+                #print(pairs)
+                pairpoint = {}
+                for pair in pairs:
+                    pairpoint = {}
+                    #print(list(pair.keys())[0])
+                    pairpoint['source'] = list(pair.keys())[0]
+                    pairpoint['target'] = list(pair.values())[0]
+                    if pairpoint['source'] in knownpoints:
+                        if pairpoint['target'] in knownpoints:
+                            totallinks.append(pairpoint)
+            data['links'] = totallinks#[0:100]
+            with open(outfile, 'w') as fp:
+                json.dump(data, fp)
+        return
+
+    def cmme_query(self, g):
+        sparql_query = """
+        PREFIX viaf: <http://viaf.org/viaf/>
+        PREFIX loc: <http://id.loc.gov/authorities/names/>
+        PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+
+        SELECT DISTINCT ?locResource ?property ?viafResource ?label ?topic
+        WHERE {
+          {
+            ?viafResource ?property ?locResource .
+            FILTER(STRSTARTS(STR(?viafResource), str(viaf:)) && STRSTARTS(STR(?locResource), str(loc:)))
+          }
+          UNION
+          {
+            ?locResource ?property ?viafResource .
+            FILTER(STRSTARTS(STR(?viafResource), str(viaf:)) && STRSTARTS(STR(?locResource), str(loc:)))
+          }
+          UNION
+          {
+          ?viafResource rdfs:label ?label.
+          FILTER(STRSTARTS(str(?viafResource), "http://viaf.org/"))
+          }
+          UNION
+          {
+          ?locResource xsd:issued ?topic.
+          FILTER(STRSTARTS(str(?locResource), "http://id.loc.gov/"))
+          }
+        }
+        """
+        # Execute the SPARQL query and print results
+        results = g.query(sparql_query)
+
+        print("All Nodes:")
+        c = 0
+        for row in results:
+            if c < 100: 
+                print(row)
+                c = c + 1
+        return results

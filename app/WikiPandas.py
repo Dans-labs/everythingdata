@@ -91,7 +91,11 @@ class WikiPandas():
         }
         ORDER BY ?entity ?propertyLabel
         """ % entityID
-        query_result = mkwikidata.run_query(query, params={ })
+        try:
+            query_result = mkwikidata.run_query(query, params={ })
+        except:
+            return
+
         if format == 'json':
             return query_result
         if format == 'pandas':
@@ -120,14 +124,18 @@ class WikiPandas():
         ORDER BY ?entity ?propertyLabel
         """ % (viafID, wdt)
         print(query)
-        query_result = mkwikidata.run_query(query, params={ })
-        if self.format == 'json':
-            return query_result
-        if self.format == 'pandas':
-            langdata = self.add_lang(query_result["results"]["bindings"])
-            data = [{"property" : x["property"]["value"], "value" : str(x["value"]["value"]), "lang": str(x["value"]["xml:lang"])} for x in langdata]
-            df = pd.DataFrame(data).set_index("property")
-            return df
+        try:
+            query_result = mkwikidata.run_query(query, params={ })
+            if self.format == 'json':
+                return query_result
+            if self.format == 'pandas':
+                langdata = self.add_lang(query_result["results"]["bindings"])
+                data = [{"property" : x["property"]["value"], "value" : str(x["value"]["value"]), "lang": str(x["value"]["xml:lang"])} for x in langdata]
+                df = pd.DataFrame(data).set_index("property")
+                return df
+            return
+        except:
+            return
 
     def wikidata_persons(self, wdt="P214", personID="\"59269465\""):
         query = """
