@@ -14,15 +14,46 @@ services:
                 count: ${gpucount}
                 capabilities: [gpu]
       environment:
+       - "TEST2"
        - "TOKEN"
        - "DATAPATH"
+       - "MIN_SENTENCE_SIZE"
        - "CONFIG"
+       - "CONFIGFILE"
        - "MODEL"
-       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:${max_split_size_mb}
+       - "LLAMAMODEL"
+       - "DIDAPI"
+       - "NERAPI"
+       - "LLMRAMAPI"
+       - "LLMAPI"
+       - "GRAPHDIR"
+       - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+       - "OLLAMA_API"
+       - "DEBUG=1234567801"
       ports:
-        - "8008:8000"
+        - "${llmport}:8000"
       command: uvicorn main:app --host 0.0.0.0 --port 8000
       volumes:
         - ${DATADIR}:/data
         - ${CONFIG}:/app/config/prompts.ini
         - ${MODELS}:/root/.cache/huggingface
+        - ./app/app.py:/app/main.py
+        - ./app/llmframe.py:/app/llmframe.py
+
+    llama:
+      volumes:
+        - ./ollama-docker/ollama/ollama:/root/.ollama
+      container_name: ollama
+      pull_policy: always
+      tty: true
+      restart: unless-stopped
+      image: ollama/ollama:latest
+      ports:
+        - 11434:11434
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: 1
+                capabilities: [gpu]
