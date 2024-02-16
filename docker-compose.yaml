@@ -3,12 +3,10 @@ version: '3.7'
 
 services:
     everythingdata:
-      networks:
-        - traefik
       container_name: everythingdata
-      build: .
       user: root
-      build: .
+      #build: .
+      image: dansknaw/everythingdata:devel-cuda11
       deploy:
         resources:
           reservations:
@@ -17,22 +15,11 @@ services:
                 count: 1
                 capabilities: [gpu]
       environment:
-       - "TEST"
        - "TOKEN"
        - "DATAPATH"
-       - "MIN_SENTENCE_SIZE"
        - "CONFIG"
-       - "CONFIGFILE"
        - "MODEL"
-       - "LLAMAMODEL"
-       - "DIDAPI"
-       - "NERAPI"
-       - "LLMRAMAPI"
-       - "LLMAPI"
-       - "GRAPHDIR"
        - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
-       - "OLLAMA_API"
-       - "DEBUG=1234567801"
       ports:
         - "8008:8000"
       command: uvicorn main:app --host 0.0.0.0 --port 8000
@@ -40,12 +27,5 @@ services:
         - ${DATADIR}:/data
         - ${CONFIG}:/app/config/prompts.ini
         - ${MODELS}:/root/.cache/huggingface
-        - ${GRAPHDIR}:/app/config
         - ./app/app.py:/app/main.py
         - ./app/llmframe.py:/app/llmframe.py
-        - ./app/localconfig.py:/app/localconfig.py
-        - ./app/utils.py:/app/utils.py
-
-networks:
-  traefik:
-    external: true
