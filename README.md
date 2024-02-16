@@ -53,6 +53,7 @@ If you see NVIDIA screen then start Everythingdata as a service:
 cp env.sample .env
 docker-compose up -d
 curl http://0.0.0.0:8008/docs
+docker exec ollama /usr/bin/ollama pull llama2
 ```
 Try it with Titanic Disaster Dataset:
 ```
