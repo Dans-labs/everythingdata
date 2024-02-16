@@ -9,7 +9,32 @@ This demonstrator will be working for various use cases:
 - connect to Dataverse, read datasets and describe files on variables level
 - link variables to Semantic Web concepts such as Wikidata or Skosmos hosted
 
-Usage:
+<!--- Indent entire section -->
+<div style="margin-left: 1.5em;">
+
+Prerequisites: [git](https://git-scm.com/downloads), [cURL](https://curl.haxx.se/download.html), [Docker](https://docs.docker.com/get-docker/), [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
+```shell
+sudo apt-get install git curl docker-compose -y
+
+# Make sure the Docker daemon is running.
+sudo systemctl start docker
+
+# Add your user to the Docker group.
+sudo usermod -a -G docker <username>
+
+# Check version numbers  
+docker --version
+docker-compose --version
+
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/ubuntu22.04/nvidia-docker.list > /etc/apt/sources.list.d/nvidia-docker.list
+sudo apt update
+sudo apt-get update     && sudo apt-get install -y nvidia-container-toolkit
+sudo nvidia-ctk runtime configure --runtime=docker
+sudo systemctl restart docker
+```
+This should get GPU unit supported inside of Docker container. Now start Everythingdata as a service:
 ```
 cp env.sample .env
 docker-compose up -d
