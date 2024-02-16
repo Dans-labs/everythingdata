@@ -41,6 +41,13 @@ or
 docker run --rm --runtime=nvidia --gpus all dansknaw/everythingdata:devel-cuda12 nvidia-smi
 ```
 
+Install Everythingdata and Ollama Docker:
+```
+git clone https://github.com/Dans-labs/everythingdata
+cd everythingdata
+git clone https://github.com/valiantlynx/ollama-docker/
+```
+
 If you see NVIDIA screen then start Everythingdata as a service:
 ```
 cp env.sample .env
