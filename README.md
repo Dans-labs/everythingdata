@@ -34,11 +34,22 @@ sudo apt-get update     && sudo apt-get install -y nvidia-container-toolkit
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 ```
-This should get GPU unit supported inside of Docker container. Now start Everythingdata as a service:
+This should get GPU unit supported inside of Docker container. You can test by running separate commands for cuda11 and cuda12:
+```
+docker run --rm --runtime=nvidia --gpus all dansknaw/everythingdata:devel-cuda11 nvidia-smi
+or
+docker run --rm --runtime=nvidia --gpus all dansknaw/everythingdata:devel-cuda12 nvidia-smi
+```
+
+If you see NVIDIA screen then start Everythingdata as a service:
 ```
 cp env.sample .env
 docker-compose up -d
 curl http://0.0.0.0:8008/docs
+```
+Go inside of the running Docker container to check if NVIDIA-compatible GPU unit is recognized (tested with A100 and A6000):
+```
+docker exec -it everything data
 ```
 Try it with Titanic Disaster Dataset:
 ```
