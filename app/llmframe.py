@@ -2,20 +2,93 @@ import pandas as pd
 import duckdb
 import time
 from config import Config
+from utils import generate_md5
+from localconfig import mappings
+from langchain.llms import Ollama
+from localconfig import SYS_PROMPT, R_SYS_PROMPT
+from nltk import tokenize, sent_tokenize
 import os
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 import accelerate
 import bitsandbytes
+import re
+
+def keywords_cleaner(content):
+    response = str(content).replace('<br>','\n')
+    response = "%s }" % response
+    data = {}
+    keywords_list = []
+    keywords = re.findall(r'\"(.+?)\"', response)
+    for keyword in keywords:
+        if keyword != 'keywords':
+            keywords_list.append(keyword)
+    data['keywords'] = keywords_list
+    return data
 
 class LLMFrame():
-    def __init__(self, config=False, job=False, debug=False):
+    def __init__(self, config=False, job=False, customprompt=False, debug=False):
         self.DEBUG = debug
         self.df = False
+        self.SYS_PROMPT = False
         self.config = False
         if job:
             self.config = config
+        if customprompt:
+            with open("%s/%s" % (os.environ['GRAPHDIR'], customprompt), 'r') as file:
+                self.SYS_PROMPT = file.read()            
+        print(self.config)
         
+    def graphtuning(self, source, llminput):
+        artefacts = {}
+        facts = []
+        atoms = []
+        for entities in llminput.split('}'):
+            graphatom = {}
+            chain = ""
+            for entity in entities.split('\n'):
+                print("# %s #" % entity)
+                p = re.search(r"\"(\S+)\"\:\s+(.+)", entity)
+                if p:
+                    graphatom[p.group(1)] = p.group(2).replace(',','').replace('"','')
+            if graphatom:
+                print(graphatom)
+                atoms.append(graphatom)
+                if 'relationship' in graphatom:
+                    if graphatom['relationship'] in mappings:
+                        graphatom['relationship'] = mappings[graphatom['relationship']]
+                    if not 'is part of' in graphatom['relationship']:
+                        chain = "%s %s(%s) %s" % (graphatom['concept1'], graphatom['entity'], graphatom['relationship'], graphatom['concept2'])
+                    else:
+                        chain = "%s %s (%s) %s" % (graphatom['concept2'], graphatom['entity'], graphatom['relationship'], graphatom['concept1'])
+                    facts.append(chain)
+        artefacts['source'] = source
+        artefacts['facts'] = facts
+        artefacts['graph'] = atoms
+        return artefacts
+
+    def graph_decompression(self, inputdata):
+        inputtext = ''
+        for field in inputdata:
+            inputtext = "%s. %s" % (inputtext, inputdata[field])
+
+        customquery = f"context: ```{inputtext}``` \n\n output: "
+        model = os.environ['LLAMAMODEL']
+        ollama = Ollama(base_url="%s" % os.environ['OLLAMA_API'], model=model, system=R_SYS_PROMPT)
+        s = sent_tokenize(inputtext)
+        data = {}
+        for ix in range(0,len(s)):
+            sent = s[ix]
+            record = { 'uid': ix }
+            if len(sent) > int(os.environ['MIN_SENTENCE_SIZE']):
+                item = ollama(sent)
+                item = item.replace('<|im_end|>','')
+                if len(item) > int(os.environ['MIN_SENTENCE_SIZE']):
+                    record['data'] = self.graphtuning(sent, item)
+                    record['md5'] = generate_md5(sent)
+            data[ix] = record
+        return data
+
     def loader(self, path="../data"):
         csvfiles =[]
         xlsfiles = []
@@ -27,7 +100,7 @@ class LLMFrame():
             self.df = pd.concat((pd.read_excel(path +"/" + f) for f in xlsfiles), ignore_index=False)
         return self.df
         
-    def create_message(self, table_name = None, query = None, customquery = None):
+    def create_message(self, table_name = None, query = None, customquery = None, direct=None, context=None):
         class table_message:
             def __init__(message, system, user, column_names, column_attr):
                 message.system = system
@@ -36,10 +109,17 @@ class LLMFrame():
                 message.column_attr = column_attr
 
    
-        system_template = self.config['instruction']
-        if customquery:
+        if self.SYS_PROMPT:
+            system_template = self.SYS_PROMPT
+            user_template = customquery
+        else:
+            system_template = self.config['instruction']
+            user_template = self.config['template']
+
+        if direct:
             system_template = customquery
-        user_template = self.config['template']
+            user_template = "%s %s" % (user_template, customquery)
+            user_template = customquery
 
         if table_name:
             tbl_describe = duckdb.sql("DESCRIBE SELECT * FROM " + table_name +  ";")
@@ -60,8 +140,14 @@ class LLMFrame():
 #  template: 'then translate user's query in {}'
 # English, French and Spanish'
 
-            system = system_template.format(customquery)
-            user = user_template.format(query)
+            if self.SYS_PROMPT:
+                system = system_template
+                user = user_template
+            else:
+                print(system_template)
+                print(customquery)
+                system = system_template.format(context, customquery)
+                user = user_template.format(query)
             m = table_message(system = system, user = user, column_names = None, column_attr = None)
             return m
         return 
