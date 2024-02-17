@@ -30,6 +30,7 @@ class LLMFrame():
     def __init__(self, config=False, job=False, customprompt=False, debug=False):
         self.DEBUG = debug
         self.df = False
+        self.data = False
         self.SYS_PROMPT = False
         self.config = False
         if job:
@@ -37,6 +38,7 @@ class LLMFrame():
         if customprompt:
             with open("%s/%s" % (os.environ['GRAPHDIR'], customprompt), 'r') as file:
                 self.SYS_PROMPT = file.read()            
+        #print("PROMPT %s" % self.SYS_PROMPT)
         print(self.config)
         
     def graphtuning(self, source, llminput):
@@ -96,8 +98,10 @@ class LLMFrame():
         xlsfiles = [x for x in os.listdir(path = path) if ".xls" in x]
         if csvfiles:
             self.df = pd.concat((pd.read_csv(path +"/" + f) for f in csvfiles), ignore_index=True)
+            self.data = True
         if xlsfiles:
             self.df = pd.concat((pd.read_excel(path +"/" + f) for f in xlsfiles), ignore_index=False)
+            self.data = True
         return self.df
         
     def create_message(self, table_name = None, query = None, customquery = None, direct=None, context=None):
@@ -113,6 +117,9 @@ class LLMFrame():
             system_template = self.SYS_PROMPT
             user_template = customquery
         else:
+            self.data = True
+        
+        if self.data:
             system_template = self.config['instruction']
             user_template = self.config['template']
 
