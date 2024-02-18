@@ -2,7 +2,7 @@
 
 Everything Data is a FastAPI framework implementation for transformers, State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX. Knowledge graph extraction is built on [Ollama](https://ollama.com) as a service, which enables the execution of Open-Source Large Language Models (LLMs), such as Llama 2 and Mistral. The interface enriches the capabilities of LLM by seamlessly integrating RAM memory and persistent memory (ROM) while natively supporting [Decentralized Identifiers](https://zenodo.org/records/10375766) (DID). This ensures the provenance and persistence of results and their timestamps, and caching available LLM resources, including prompts, questions, and answers as [FAIR semantic artefacts](https://fair-impact.eu/wp4-metadata-and-ontologies).
 
-Created by [Slava Tykhonov](https://www.linkedin.com/in/vyacheslavtikhonov/), [DANS-KNAW](https://dans.knaw.nl/en) R&D. Development is supported by [BioSTM](https://rozen.perso.math.cnrs.fr/YR/HOME.html), Paris Cité University, France, and [ODISSEI](https://odissei-data.nl/en/), Open Data Infrastructure for Social Science and Economic Innovations.
+Created by [Slava Tykhonov](https://www.linkedin.com/in/vyacheslavtikhonov/), [DANS-KNAW](https://dans.knaw.nl/en) R&D. Development is supported by [BioSTM](https://appliweb.dgri.education.fr/rnsr/PresenteStruct.jsp?numNatStruct=201922951U&PUBLIC=OK), Paris Cité University, France, and [ODISSEI](https://odissei-data.nl/en/), Dutch Open Data Infrastructure for Social Science and Economic Innovations.
 
 This demonstrator will be working for various [use cases](https://github.com/Dans-labs/everythingdata/tree/master/docs):
 - create SQL table out of tabular datasets and fill with data points in the appropriate format
