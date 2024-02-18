@@ -14,7 +14,7 @@ services:
                 count: ${gpucount}
                 capabilities: [gpu]
       environment:
-       - "TEST2"
+       - "TEST"
        - "TOKEN"
        - "DATAPATH"
        - "MIN_SENTENCE_SIZE"
@@ -39,6 +39,8 @@ services:
         - ${MODELS}:/root/.cache/huggingface
         - ./app/app.py:/app/main.py
         - ./app/llmframe.py:/app/llmframe.py
+        - ./app/localconfig.py:/app/localconfig.py
+        - ./config/prompts.ini:/app/config/prompts.ini
 
     llama:
       volumes:
@@ -57,3 +59,4 @@ services:
               - driver: nvidia
                 count: 1
                 capabilities: [gpu]
+
