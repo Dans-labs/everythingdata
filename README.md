@@ -1,11 +1,13 @@
 # Everything Data
 
-Everything Data is a FastAPI implementation for transformers, State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX. 
-Created by Slava Tykhonov, DANS-KNAW R&D.
+Everything Data is a FastAPI framework implementation for transformers, State-of-the-art Machine Learning for Pytorch, TensorFlow, and JAX. Knowledge graph extraction is built on Ollama as a service, which enables the execution of Open-Source Large Language Models (LLMs), such as Llama 2 and Mistral. The interface enriches the capabilities of Large Language Models (LLMs) by seamlessly integrating RAM memory and persistent memory (ROM) while natively supporting Decentralized Identifiers (DID). This ensures the persistence of available resources, including prompts, questions, and answers.
+
+Created by [Slava Tykhonov](https://www.linkedin.com/in/vyacheslavtikhonov/), [DANS-KNAW](https://dans.knaw.nl/en) R&D. Development is supported by [BioSTM](https://rozen.perso.math.cnrs.fr/YR/HOME.html), Paris Cité University, France, and [ODISSEI](https://odissei-data.nl/en/), Open Data Infrastructure for Social Science and Economic Innovations.
 
 This demonstrator will be working for various use cases:
 - create SQL table out of tabular datasets and fill with data points in the appropriate format
 - ask your data with natural language about anything, get back answers with explanation or SQL queries to do verification of results.
+- create multilingual vocabularies from scratch or extend existent vocabularies with properties translated in the context
 - connect to Dataverse, read datasets and describe files on variables level
 - link variables to Semantic Web concepts such as Wikidata or Skosmos hosted
 
