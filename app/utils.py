@@ -111,7 +111,15 @@ def infocleaner(response):
         print(item)
         if item:
             info = re.search(r'(^.+?)\:\s*(.+)$', item)
-            data[info.group(1)] = info.group(2)
+            try:
+                llmkey = info.group(1)
+                llmkey = llmkey.replace("User's request in ","")
+                llmkey = llmkey.replace("Description", "Short description")
+                llmvalue = info.group(2)
+                #User's request in 
+                data[llmkey] = llmvalue
+            except:
+                data['summary'] = item
     return data
 
 def generate_md5(text):

@@ -17,10 +17,11 @@ from typing import Optional
 from pydantic import BaseModel
 import nltk
 nltk.download('punkt')
-
 cfg = Config(os.environ['CONFIG'])
 token = os.getenv('TOKEN')
-
+trans_job = 'translate'
+llm_for_translation = LLMFrame(config=cfg[transjob], job=transjob)
+print(SYS_PROMPT)
 app = FastAPI()
 
 # Define a route using a decorator
@@ -85,11 +86,11 @@ async def translate_item(info: Request, job='translate'):
         format = transferdata['format']
     else:
         format = 'json'
-    llm = LLMFrame(config=cfg[job], job=job)
+    #llm = LLMFrame(config=cfg[job], job=job)
     if 'concept' in transferdata:
-        m = llm.create_message(table_name = None, query = None, customquery=transferdata['concept'], context=transferdata['context'])
-        messages = llm.prepare_message(m)
-        o = llm.run_pipeline(messages)
+        m = llm_for_translation.create_message(table_name = None, query = None, customquery=transferdata['concept'], context=transferdata['context'])
+        messages = llm_for_translation.prepare_message(m)
+        o = llm_for_translation.run_pipeline(messages)
         if format == 'html':
             return HTMLResponse(content=str(o[0]['generated_text']).replace('\n', '<br>'), status_code=200)
         if format == 'json':
@@ -119,12 +120,12 @@ def translate(job='translate', customquery: Optional[str] = None, language: Opti
         context = 'nocontext'
     transferdata['context'] = context
     
-    llm = LLMFrame(config=cfg[job], job=job)
-    msg = llm.create_message(table_name = None, query = query, customquery=customquery)
-    m = llm.create_message(table_name = None, query = query, customquery=customquery, context=context)
-    llm.debug_messages(m)
-    messages = llm.prepare_message(m)
-    o = llm.run_pipeline(messages)
+    #llm = LLMFrame(config=cfg[job], job=job)
+    msg = llm_for_translation.create_message(table_name = None, query = query, customquery=customquery)
+    m = llm_for_translation.create_message(table_name = None, query = query, customquery=customquery, context=context)
+    llm_for_translation.debug_messages(m)
+    messages = llm_for_translation.prepare_message(m)
+    o = llm_for_translation.run_pipeline(messages)
     if format == 'html':
         return HTMLResponse(content=str(o[0]['generated_text']).replace('\n', '<br>'), status_code=200)
     else:

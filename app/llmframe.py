@@ -29,6 +29,7 @@ def keywords_cleaner(content):
 class LLMFrame():
     def __init__(self, config=False, job=False, customprompt=False, debug=False):
         self.DEBUG = debug
+        self.pipe = False
         self.df = False
         self.data = False
         self.SYS_PROMPT = False
@@ -186,13 +187,15 @@ class LLMFrame():
         return
 
     def run_pipeline(self, messages):
-        pipe = pipeline("text-generation",
+        if not self.pipe:
+            print("LOAD pipeline")
+            self.pipe = pipeline("text-generation",
                 model=os.environ['MODEL'],
                 torch_dtype=torch.bfloat16,
                 device_map="auto")
 
-        prompt = pipe.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        outputs = pipe(prompt,
+        prompt = self.pipe.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        outputs = self.pipe(prompt,
                max_new_tokens=256,
                do_sample=True,
                temperature=0.1,
