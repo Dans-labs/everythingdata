@@ -19,7 +19,7 @@ import nltk
 nltk.download('punkt')
 cfg = Config(os.environ['CONFIG'])
 token = os.getenv('TOKEN')
-trans_job = 'translate'
+transjob = os.environ['TRANSLATOR']
 llm_for_translation = LLMFrame(config=cfg[transjob], job=transjob)
 print(SYS_PROMPT)
 app = FastAPI()
