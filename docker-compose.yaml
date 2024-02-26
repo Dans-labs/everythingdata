@@ -27,6 +27,9 @@ services:
        - "LLMRAMAPI"
        - "LLMAPI"
        - "GRAPHDIR"
+       - MAX_WORKERS=10
+       - WEB_CONCURRENCY=10
+       - "--n_samples=1"
        - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
        - "OLLAMA_API"
        - "DEBUG=1234567801"
@@ -41,6 +44,7 @@ services:
         - ./app/llmframe.py:/app/llmframe.py
         - ./app/localconfig.py:/app/localconfig.py
         - ./config/prompts.ini:/app/config/prompts.ini
+        - ./app/utils.py:/app/utils.py
 
     llama:
       volumes:
