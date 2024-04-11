@@ -49,6 +49,26 @@ services:
         - ./app/localconfig.py:/app/localconfig.py
         - ./app/utils.py:/app/utils.py
 
+    llama:
+      volumes:
+        - ./ollama-docker/ollama/ollama:/root/.ollama
+      networks:
+        - traefik
+      container_name: ollama
+      pull_policy: always
+      tty: true
+      restart: unless-stopped
+      image: ollama/ollama:latest
+      ports:
+        - 11434:11434
+      deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                capabilities: [gpu]
+                device_ids: ['1']
+
 networks:
   traefik:
     external: true
