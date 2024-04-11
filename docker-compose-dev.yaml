@@ -17,6 +17,8 @@ services:
                 count: 1
                 capabilities: [gpu]
       environment:
+       - "JUPYTER_PASSWORD"
+       - "TRANSLATOR"
        - "TEST"
        - "TOKEN"
        - "DATAPATH"
@@ -35,6 +37,7 @@ services:
        - "DEBUG=1234567801"
       ports:
         - "8008:8000"
+        - "8009:8888"
       command: uvicorn main:app --host 0.0.0.0 --port 8000
       volumes:
         - ${DATADIR}:/data
