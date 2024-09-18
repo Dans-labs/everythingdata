@@ -17,7 +17,10 @@ This demonstrator will be working for various [use cases](https://github.com/Dan
 Prerequisites: [git](https://git-scm.com/downloads), [cURL](https://curl.haxx.se/download.html), [Docker](https://docs.docker.com/get-docker/), [nvidia-container-toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 
 ```shell
-sudo apt-get install git curl docker-compose -y
+DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+mkdir -p $DOCKER_CONFIG/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.29.4/docker-compose-linux-x86_64 -o $DOCKER_CONFIG/cli-plugins/docker-compose
+ln -s $DOCKER_CONFIG/cli-plugins/docker-compose /usr/bin/docker-compose
 
 # Make sure the Docker daemon is running.
 sudo systemctl start docker
@@ -55,7 +58,7 @@ If you see NVIDIA screen then start Everythingdata as a service:
 cp env.sample .env
 docker-compose up -d
 curl http://0.0.0.0:8008/docs
-docker exec ollama /usr/bin/ollama pull llama2
+docker exec ollama /usr/bin/ollama pull llama3
 ```
 Try it with Titanic Disaster Dataset:
 ```
